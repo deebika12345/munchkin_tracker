@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ResponseHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
@@ -51,6 +52,11 @@ class AuthController extends Controller
             'name' => 'required|string|between:2,100',
             'phone_number' => 'required|unique:users',
             'password' => 'required|string|confirmed|min:6',
+            'permanent_latitude' => 'required',
+            'permanent_longitude' => 'required',
+            'student_name' => 'required_if:user_type,' . User::PARENT,
+            'standard' => 'required_if:user_type,' . User::PARENT,
+            'user_type' => 'required|in:' . User::PARENT . ',' . User::DRIVER . ',' . User::ADMIN,
         ]);
 
         if ($validator->fails()) {
@@ -105,5 +111,100 @@ class AuthController extends Controller
             'expires_in' => auth()->factory()->getTTL() * 60,
             'user' => auth()->user()
         ]);
+    }
+
+    public function getParents(Request $request)
+    {
+        $parents = User::getParents();
+        return response()->json(['message' => '', 'parents' => $parents]);
+    }
+
+    public function getDrivers(Request $request)
+    {
+        $drivers = User::getDrivers();
+        return response()->json(['message' => '', 'drivers' => $drivers]);
+    }
+
+    public function assignDriver(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'driver_id' => 'required|exists:users,id',
+            'parent_id' => 'required|exists:users,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors()->toJson(), 400);
+        }
+        $params = ['driver_id' => $request->driver_id];
+        $user = User::Edit($request->parent_id, $params);
+        return response()->json(['message' => '', 'user' => $user]);
+    }
+
+    public function trackingUpdate(Request $request)
+    {
+        $authUser = Auth::id();
+        $validator = Validator::make($request->all(), [
+            'latitude' => 'required',
+            'longitude' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors()->toJson(), 400);
+        }
+        $params = ['latitude' => $request->latitude, 'longitude' => $request->longitude];
+        $user = User::Edit($authUser, $params);
+        return response()->json(['message' => '', 'user' => $user]);
+    }
+
+    public function getDriverTracking(Request $request)
+    {
+        $authUser = Auth::id();
+        $driver = User::getDriverDetail($authUser);
+        return response()->json(['message' => '', 'user' => $driver]);
+    }
+
+    public function updateArrivingTime(Request $request)
+    {
+        $authUser = Auth::id();
+        $validator = Validator::make($request->all(), [
+            'arriving_time' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors()->toJson(), 400);
+        }
+        $params = ['arriving_time' => $request->arriving_time];
+        $user = User::Edit($authUser, $params);
+        return response()->json(['message' => '', 'user' => $user]);
+    }
+
+    public function updateDismissal(Request $request)
+    {
+        $authUser = Auth::id();
+        $validator = Validator::make($request->all(), [
+            'is_dismissal' => 'required'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors()->toJson(), 400);
+        }
+
+        $params = ['is_dismissal' => $request->is_dismissal, 'dismissal_note' => $request->dismissal_note];
+        $user = User::Edit($authUser, $params);
+        return response()->json(['message' => '', 'user' => $user]);
+    }
+
+    public function deleteUser(Request $request, $id)
+    {
+        $data = ['id' => $id];
+        $validator = Validator::make($data, [
+            'id' => 'required|exists:users,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($validator->errors()->toJson(), 400);
+        }
+        User::deleteUser($data['id']);
+        return response()->json(['message' => 'User deleted successfully']);
     }
 }

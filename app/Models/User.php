@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -13,6 +15,7 @@ class User extends Authenticatable implements JWTSubject
 {
     use HasApiTokens, HasFactory, Notifiable;
 
+    const PARENT = 'parent', DRIVER = 'driver', ADMIN = 'admin';
     /**
      * The attributes that are mass assignable.
      *
@@ -27,6 +30,12 @@ class User extends Authenticatable implements JWTSubject
         'longitude',
         'permanent_latitude',
         'permanent_longitude',
+        'student_name',
+        'driver_id',
+        'arriving_time',
+        'is_dismissal',
+        'dismissal_note',
+        'standard',
         'created_at',
         'updated_at'
     ];
@@ -53,14 +62,75 @@ class User extends Authenticatable implements JWTSubject
     /***
      * @return mixed
      */
-    public function getJWTIdentifier() {
+    public static function getParents()
+    {
+        return User::where('user_type', self::PARENT)->get();
+    }
+
+    /***
+     * @return mixed
+     */
+    public static function getDrivers()
+    {
+        return User::where('user_type', self::DRIVER)->get();
+    }
+
+    /***
+     * @param $id
+     * @return mixed
+     */
+    public static function getById($id)
+    {
+        return User::findOrFail($id);
+    }
+
+    /***
+     * @param $id
+     * @param $params
+     * @return mixed
+     */
+    public static function edit($parentId, $params)
+    {
+        $user = User::getById($parentId);
+        $user->update($params);
+        return $user;
+    }
+
+    public static function getDriverDetail($id)
+    {
+       return User::where('id', $id)->with('driver')->get();
+    }
+
+    /***
+     * @param $id
+     */
+    public static function deleteUser($id)
+    {
+        User::where('id', '=', $id)->delete();
+    }
+
+    /***
+     * @return BelongsTo
+     */
+    public function driver(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'driver_id', 'id');
+    }
+
+
+    /***
+     * @return mixed
+     */
+    public function getJWTIdentifier()
+    {
         return $this->getKey();
     }
 
     /***
      * @return array
      */
-    public function getJWTCustomClaims() {
+    public function getJWTCustomClaims()
+    {
         return [];
     }
 }

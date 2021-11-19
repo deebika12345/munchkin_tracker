@@ -29,5 +29,12 @@ Route::group([
     Route::post('/register', [AuthController::class, 'register']);
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
-    Route::get('/user-profile', [AuthController::class, 'userProfile']);
+    Route::get('/get-parents', [AuthController::class, 'getParents']);
+    Route::get('/get-drivers', [AuthController::class, 'getDrivers']);
+    Route::post('/assign-driver', [AuthController::class, 'assignDriver']);
+    Route::post('/tracking-update', [AuthController::class, 'trackingUpdate']);
+    Route::get('/get-driver-tracking', [AuthController::class, 'getDriverTracking']);
+    Route::post('/update-arriving-time', [AuthController::class, 'updateArrivingTime']);
+    Route::post('/update-dismissal', [AuthController::class, 'updateDismissal']);
+    Route::delete('delete-user/{id}', [AuthController::class, 'deleteUser']);
 });

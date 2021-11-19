@@ -16,6 +16,7 @@ class CreateUsersTable extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('student_name')->nullable();
             $table->string('user_type')->nullable();
             $table->string('phone_number')->unique();
             $table->string('permanent_latitude')->nullable();
@@ -24,6 +25,10 @@ class CreateUsersTable extends Migration
             $table->string('longitude')->nullable();
             $table->string('password');
             $table->string('driver_id')->nullable();
+            $table->dateTime('arriving_time')->nullable();
+            $table->boolean('is_dismissal')->default(false);
+            $table->longText('dismissal_note')->nullable();
+            $table->string('standard')->nullable();
             $table->timestamps();
         });
     }
