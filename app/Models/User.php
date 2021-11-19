@@ -64,7 +64,7 @@ class User extends Authenticatable implements JWTSubject
      */
     public static function getParents()
     {
-        return User::where('user_type', self::PARENT)->get();
+        return User::where('user_type', self::PARENT)->with('driver')->get();
     }
 
     /***
@@ -98,7 +98,7 @@ class User extends Authenticatable implements JWTSubject
 
     public static function getDriverDetail($id)
     {
-       return User::where('id', $id)->with('driver')->get();
+        return User::where('id', $id)->with('driver')->get();
     }
 
     /***
