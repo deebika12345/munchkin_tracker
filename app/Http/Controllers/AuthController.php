@@ -204,7 +204,8 @@ class AuthController extends Controller
         if ($validator->fails()) {
             return response()->json($validator->errors()->toJson(), 400);
         }
-        User::deleteUser($data['id']);
-        return response()->json(['message' => 'User deleted successfully']);
+        $params = ['driver_id' => null];
+        User::Edit($id, $params);
+        return response()->json(['message' => 'User updated successfully']);
     }
 }
